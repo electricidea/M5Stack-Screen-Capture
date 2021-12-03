@@ -614,37 +614,38 @@ void draw_gauge(float val_1, float val_2 = -1.0){
   M5.Lcd.pushImage(0, 0, 320, 240, gauge_pic);
   
   // unrotated arrow is pointing on the x-axis to the right
-  float xpos1 = 80.0;
-  float ypos1 = 0.0;
-  float xpos2 = 0.0;
-  float ypos2 = 0.0;
+  int xpos1 = 80.0;
+  int ypos1 = 0.0;
   // with the origin in the center of the screen
   int xpos0 = (int)(M5.Lcd.width()/2);
   int ypos0 = (int)(M5.Lcd.height()/2);
-  // rotate the arrow for the thin green line
-  float angle = (239.0-((val_2/100)*298)) * DEG2RAD;
+  // rotate the endpoint for the thin green line
   if(val_2 >= 0 && val_2 <= 100){
-    xpos2 = xpos1 * cos(angle) + ypos1 * sin(angle);
-    ypos2 = -1.0*xpos1 * sin(angle) + ypos1 * cos(angle);
-    M5.Lcd.drawLine(xpos0, ypos0, (int) roundf(xpos2 + xpos0), (int) roundf(ypos2 + ypos0), TFT_GREEN);
-  }
-  for(int r = 10; r >0; r--){
-    M5.Lcd.drawCircle(xpos0, ypos0, r, TFT_RED);
+    float angle = (239.0-((val_2/100)*298)) * DEG2RAD;
+    int xpos2 = (int) roundf(xpos1 * cos(angle) + ypos1 * sin(angle)) + xpos0;
+    int ypos2 = (int) roundf(-1.0*xpos1 * sin(angle) + ypos1 * cos(angle)) + ypos0;
+    M5.Lcd.drawLine(xpos0, ypos0, xpos2, ypos2, TFT_GREEN);
   }
   if(val_1 >= 0 && val_1 <= 100){
     // calculate the endpoint of the red arrow after rotation
-    angle = (239.0-((val_1/100)*298)) * DEG2RAD;
-    xpos2 = (xpos1 * cos(angle) + ypos1 * sin(angle))+xpos0;
-    ypos2 = (-1.0*xpos1 * sin(angle) + ypos1 * cos(angle))+ypos0;
+    // 0%   = 239 deg
+    // 100% = -60 deg
+    float angle = (239.0-((val_1/100)*298)) * DEG2RAD;
+    int xpos2 = (int) roundf(xpos1 * cos(angle) + ypos1 * sin(angle)) + xpos0;
+    int ypos2 = (int) roundf(-1.0*xpos1 * sin(angle) + ypos1 * cos(angle)) + ypos0;
     // this will be the new origin, so translate the centerpoint
     xpos1 = xpos0 - xpos2;
     ypos1 = ypos0 - ypos2;
-    // now rotate this point to get multiple lines
-    for(int i = -20; i <= 20; i++){
-      angle = (float) i/6.0 * DEG2RAD;
-      xpos0 = xpos1 * cos(angle) + ypos1 * sin(angle);
-      ypos0 = -1.0*xpos1 * sin(angle) + ypos1 * cos(angle);
-      M5.Lcd.drawLine(xpos2, ypos2, (int) roundf(xpos2 + xpos0), (int) roundf(ypos2 + ypos0), TFT_RED);
-    }
+    // now rotate the original centerpoint by +4.5 and -4.5 deg to get the triangle
+    angle = (float) -4.5 * DEG2RAD;
+    int xpos3 = xpos2 + (int) roundf(xpos1 * cos(angle) + ypos1 * sin(angle));
+    int ypos3 = ypos2 + (int) roundf(-1.0*xpos1 * sin(angle) + ypos1 * cos(angle));
+    angle = (float) 4.5 * DEG2RAD;
+    int xpos4 = xpos2 + (int) roundf(xpos1 * cos(angle) + ypos1 * sin(angle));
+    int ypos4 = ypos2 + (int) roundf(-1.0*xpos1 * sin(angle) + ypos1 * cos(angle));
+    M5.Lcd.fillTriangle(xpos2, ypos2, xpos3, ypos3, xpos4, ypos4, TFT_RED);
+    // draw the center circle
+    M5.Lcd.fillCircle(xpos0, ypos0, 10, TFT_RED);
+    M5.Lcd.fillCircle(xpos0, ypos0, 2, TFT_BLACK);
   }
 }
